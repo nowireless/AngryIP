@@ -6,17 +6,11 @@
 package net.azib.ipscan;
 
 import net.azib.ipscan.config.*;
-import net.azib.ipscan.core.ScanningResultList;
 import net.azib.ipscan.core.UserErrorException;
-import net.azib.ipscan.gui.feeders.AbstractFeederGUI;
-import net.azib.ipscan.gui.feeders.FeederGUIRegistry;
-import net.azib.ipscan.gui.feeders.RangeFeederGUI;
-
 import javax.swing.*;
 
 import org.apache.logging.log4j.LogManager;
-import org.nowireless.ip.StartStopScanningAction;
-import org.nowireless.ip.StateMachineListener;
+import org.nowireless.ip.console.IPConsole;
 
 import java.security.Security;
 import java.util.Locale;
@@ -35,7 +29,8 @@ import java.util.logging.Logger;
  */
 public class Main {
 	static final Logger LOG = LoggerFactory.getLogger();
-
+	private static volatile boolean RUNNING = true;
+	
 	/**
 	 * The launching point
 	 * <p/>
@@ -66,27 +61,16 @@ public class Main {
 
 			processCommandLine(args, componentRegistry);
 
+			componentRegistry.createScanningEngine();
+			
+			IPConsole console = componentRegistry.getConsole();
+			console.start();
 			// create the main window using dependency injection
 			LOG.fine("Startup time: " + (System.currentTimeMillis() - startTime));
 			
-			componentRegistry.getContainer().getComponentInstance(StateMachineListener.class);
-			
-			FeederGUIRegistry reg = (FeederGUIRegistry) componentRegistry.getContainer().getComponentInstance(FeederGUIRegistry.class);
-			
-			AbstractFeederGUI feeder = reg.current();
-			if(feeder instanceof RangeFeederGUI) {
-				RangeFeederGUI range = (RangeFeederGUI) feeder;
-				range.startIPText = "10.0.0.0";
-				range.endIPText = "10.0.0.255";
-			}
-			
-			StartStopScanningAction action = componentRegistry.getStartAction();
-			
-			action.start();
-			
-			while (true) {
+			setRunning(true);
+			while (RUNNING) {
 				try {
-					//System.out.println("!");
 					
 					Thread.sleep(50);
 				} catch (Exception e) {
@@ -103,6 +87,8 @@ public class Main {
 			JOptionPane.showMessageDialog(null, e + "\nPlease submit a bug report mentioning your OS and what were you doing.");
 			e.printStackTrace();
 		}
+		
+		System.exit(0);
 	}
 
 
@@ -161,4 +147,8 @@ public class Main {
 		}
 		return localizedMessage;
 	}	
+	
+	public static void setRunning(boolean val) {
+		RUNNING = val;
+	}
 }

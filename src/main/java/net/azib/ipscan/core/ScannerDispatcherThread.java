@@ -99,7 +99,7 @@ public class ScannerDispatcherThread extends Thread implements ThreadFactory, St
 						// retrieve the next IP address to scan
 						subject = feeder.next();
 						
-						log.info("New Subject: {}", subject);
+						log.trace("New Subject: {}", subject);
 						
 						// check if this is a likely broadcast address and needs to be skipped
 						if (config.skipBroadcastAddresses && InetAddressUtils.isLikelyBroadcast(subject.getAddress())) {

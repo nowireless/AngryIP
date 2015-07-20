@@ -5,6 +5,16 @@
  */
 package net.azib.ipscan.config;
 
+import org.nowireless.ip.NowirelessStateMachine;
+import org.nowireless.ip.ScanningEngine;
+import org.nowireless.ip.StateMachineListener;
+import org.nowireless.ip.command.ScanCommand;
+import org.nowireless.ip.command.ShowCommand;
+import org.nowireless.ip.console.IPConsole;
+import org.picocontainer.MutablePicoContainer;
+import org.picocontainer.PicoContainer;
+import org.picocontainer.defaults.DefaultPicoContainer;
+
 import net.azib.ipscan.core.PluginLoader;
 import net.azib.ipscan.core.Scanner;
 import net.azib.ipscan.core.ScannerDispatcherThreadFactory;
@@ -32,13 +42,6 @@ import net.azib.ipscan.fetchers.WinMACFetcher;
 import net.azib.ipscan.gui.feeders.FeederGUIRegistry;
 import net.azib.ipscan.gui.feeders.RandomFeederGUI;
 import net.azib.ipscan.gui.feeders.RangeFeederGUI;
-
-import org.nowireless.ip.DummyStateMachine;
-import org.nowireless.ip.StartStopScanningAction;
-import org.nowireless.ip.StateMachineListener;
-import org.picocontainer.MutablePicoContainer;
-import org.picocontainer.PicoContainer;
-import org.picocontainer.defaults.DefaultPicoContainer;
 
 /**
  * This class is the dependency injection configuration using the Pico Container.
@@ -92,7 +95,8 @@ public class ComponentRegistry {
 		}
 		container.registerComponentImplementation(MACVendorFetcher.class);
 
-		container.registerComponentImplementation(DummyStateMachine.class);
+		container.registerComponentImplementation(NowirelessStateMachine.class);
+		container.registerComponentImplementation(StateMachineListener.class);
 		
 		container.registerComponentImplementation(PingerRegistry.class, PingerRegistry.class);
 		container.registerComponentImplementation(ScanningResultList.class);
@@ -102,15 +106,13 @@ public class ComponentRegistry {
 
 		container.registerComponentImplementation(FeederGUIRegistry.class);
 		container.registerComponentImplementation(RangeFeederGUI.class);
-		
-		container.registerComponentImplementation(StartStopScanningAction.class);
-		
 		container.registerComponentImplementation(RandomFeederGUI.class);
-		//container.registerComponentImplementation(FileFeederGUI.class);
 		
-		//container.registerComponentImplementation(TheStartable.class);
+		container.registerComponentImplementation(ScanningEngine.class);
 		
-		container.registerComponentImplementation(StateMachineListener.class);
+		container.registerComponentImplementation(IPConsole.class);
+		container.registerComponentImplementation(ScanCommand.class);
+		container.registerComponentImplementation(ShowCommand.class);
 		
         new PluginLoader().addTo(container);
 	}
@@ -121,25 +123,19 @@ public class ComponentRegistry {
 			container.start();
 		}
 	}
-
-	//public MainWindow getMainWindow() {
-	//	// initialize all startable components
-	//	start();
-	//	// initialize and return the main window
-	//	return (MainWindow) container.getComponentInstance(MainWindow.class);
-	//}
-
-	public StartStopScanningAction getStartAction() {
-		start();
-		return (StartStopScanningAction) container.getComponentInstance(StartStopScanningAction.class);
-	}
 	
 	public CommandLineProcessor getCommandLineProcessor() {
 		start();
 		return (CommandLineProcessor) container.getComponentInstance(CommandLineProcessor.class);
 	}
 	
-	public PicoContainer getContainer() {
-		return this.container;
+	public IPConsole getConsole() {
+		start();
+		return (IPConsole) container.getComponentInstance(IPConsole.class);
+	}
+	
+	public void createScanningEngine() {
+		start();
+		container.getComponentInstance(ScanningEngine.class);
 	}
 }
